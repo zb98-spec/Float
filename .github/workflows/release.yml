@@ -148,6 +148,15 @@ jobs:
         with:
           path: dist
           merge-multiple: true
+      # The docs site's download buttons link to releases/latest/download/<name>,
+      # so each archive also goes out under a name without the version.
+      # install.yml checks that the latest release has them.
+      - name: Version-free copies
+        working-directory: dist
+        run: |
+          for f in "totalfloat-$GITHUB_REF_NAME-"*.zip "totalfloat-$GITHUB_REF_NAME-"*.tar.gz; do
+            cp "$f" "${f/-$GITHUB_REF_NAME/}"
+          done
       - name: Checksums
         working-directory: dist
         run: sha256sum * > SHA256SUMS

@@ -10,7 +10,7 @@
 set -eu
 
 releases="https://github.com/ijd5004/totalfloat/releases"
-guide="https://github.com/ijd5004/totalfloat/blob/main/docs/guide/README.md"
+start_here="https://ijd5004.github.io/totalfloat/guide/start-here.html"
 from_source="https://github.com/ijd5004/totalfloat/blob/main/docs/guide/install.md#build-from-source"
 
 say() { printf 'totalfloat-install: %s\n' "$*"; }
@@ -112,7 +112,7 @@ main() {
             printf '\n    export PATH="%s:$PATH"\n\n' "$dir"
             ;;
     esac
-    say "next, read the user guide: $guide"
+    say "next, open the Start here page: $start_here"
 }
 
 main "$@"

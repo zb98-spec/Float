@@ -38,6 +38,13 @@
     cursor: default;
 }
 
+/* The landing page's install commands wrap, so the whole command shows on
+   any screen. Copying gives the command on one line. */
+.content .tf-install pre code {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
 /* System fonts in place of mdBook's bundled ones (theme/fonts/fonts.css). */
 html {
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;

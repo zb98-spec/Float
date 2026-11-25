@@ -2,7 +2,8 @@ name: Install scripts
 
 # Checks install/install.sh and install/install.ps1 when they or the release
 # layout change, and installs the latest release with each one weekly, so a
-# release that breaks them shows up. See docs/guide/install.md.
+# release that breaks them shows up. It also checks that the latest release has
+# the version-free archives the docs site links to. See docs/guide/install.md.
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
@@ -19,6 +20,29 @@ permissions:
   contents: read
 
 jobs:
+  # The docs site's download buttons link to these version-free names, which
+  # release.yml publishes beside the versioned archives.
+  latest-downloads:
+    name: latest release downloads
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    runs-on: ubuntu-latest
+    env:
+      NAMES: totalfloat-x86_64-pc-windows-msvc.zip totalfloat-x86_64-unknown-linux-gnu.tar.gz
+    steps:
+      - name: Check the version-free archives resolve
+        run: |
+          failed=0
+          for name in $NAMES; do
+            url="https://github.com/$GITHUB_REPOSITORY/releases/latest/download/$name"
+            if curl -fsSIL -o /dev/null "$url"; then
+              echo "ok: $url"
+            else
+              echo "::error::$url doesn't resolve. The latest release needs the version-free copies (docs/RELEASING.md)."
+              failed=1
+            fi
+          done
+          exit "$failed"
+
   linux:
     name: install (linux)
     if: github.event_name != 'pull_request' || !github.event.pull_request.draft

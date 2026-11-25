@@ -16,7 +16,7 @@
     $ProgressPreference = 'SilentlyContinue'
 
     $releases = 'https://github.com/ijd5004/totalfloat/releases'
-    $guide = 'https://github.com/ijd5004/totalfloat/blob/main/docs/guide/README.md'
+    $startHere = 'https://ijd5004.github.io/totalfloat/guide/start-here.html'
     $fromSource = 'https://github.com/ijd5004/totalfloat/blob/main/docs/guide/install.md#build-from-source'
 
     function Say {
@@ -109,5 +109,5 @@
     }
 
     & $installed --version
-    Say "next, read the user guide: $guide"
+    Say "next, open the Start here page: $startHere"
 }

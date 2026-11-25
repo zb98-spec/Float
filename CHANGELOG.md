@@ -9,6 +9,9 @@
 
 ### Changed
 
+- Each release also publishes its archives under names without the version, `totalfloat-x86_64-pc-windows-msvc.zip` and `totalfloat-x86_64-unknown-linux-gnu.tar.gz`, so the docs site's download buttons always get the latest release.
+- The docs site's front page starts with the one-line install commands.
+- The install scripts end by pointing to the [Start here](https://ijd5004.github.io/totalfloat/guide/start-here.html) page.
 - The Windows zip holds `totalfloat.exe`, `LICENSE` and `README.md` at its root. Explorer's **Extract All** puts them in one folder named after the zip, where the v0.1.0 zip gave a folder inside a folder of the same name.
 
 ## v0.1.0
