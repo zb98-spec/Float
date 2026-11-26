@@ -70,6 +70,19 @@ The list of what didn't translate works the same way. The main things are:
 
 A project that lost tasks or links when its file was read is refused, and so is one with no calendars.
 
+## Put the schedule in a calendar
+
+`export --to ics` writes a project's activities as an iCalendar file, which Outlook, Google Calendar, Apple Calendar and most phones open:
+
+```sh
+totalfloat schedule plant.xer -o plant-scheduled.xer
+totalfloat export plant-scheduled.xer --to ics -o plant.ics
+```
+
+Each activity is an event named by its ID and name, with its status and total float in the description. Work not started shows its early dates, work under way its actual start and early finish, and completed work its actual dates. A milestone is an event at one moment. Critical activities and milestones are tagged `CRITICAL` and `MILESTONE`, so a calendar app can filter them.
+
+Times are written as local clock times, with no time zone, as the schedule holds them. Each event keeps the same identifier from one export to the next, so importing an update moves events rather than adding copies. Activities the file holds no dates for are left out, and the notes count them, so schedule the file first.
+
 ## Build a schedule from a spreadsheet
 
 `import` also builds a new schedule from a spreadsheet: an `.xlsx` workbook, or a folder of CSV files. A workbook has a sheet, and a folder a `.csv` file, for each part. Name each sheet or file as below; a workbook's other sheets are left alone.

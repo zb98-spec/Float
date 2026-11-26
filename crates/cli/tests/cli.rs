@@ -2259,6 +2259,69 @@ fn an_export_opens_again_as_the_same_schedule() {
 }
 
 #[test]
+fn an_export_to_ics_writes_an_event_per_activity() {
+    let directory = tempfile::tempdir().unwrap();
+    let scheduled = directory.path().join("scheduled.xer");
+    let scheduled = scheduled.to_str().unwrap();
+    run(&["schedule", LINKED, "-o", scheduled]);
+    let path = directory.path().join("plan.ics");
+    let path = path.to_str().unwrap();
+    let (code, stdout, stderr) = run(&["export", scheduled, "--to", "ics", "-o", path, "--json"]);
+    assert_eq!(code, Some(0), "{stdout}{stderr}");
+    let doc: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+    assert_eq!(doc["format"], "ics");
+    assert_eq!(doc["notes"], serde_json::json!([]));
+    let ics = std::fs::read_to_string(path).unwrap();
+    assert!(
+        ics.starts_with("BEGIN:VCALENDAR\r\nVERSION:2.0\r\n"),
+        "{ics}"
+    );
+    assert!(ics.ends_with("END:VCALENDAR\r\n"), "{ics}");
+    assert_eq!(ics.matches("BEGIN:VEVENT\r\n").count(), 2, "{ics}");
+    assert!(
+        ics.contains(
+            "DTSTART:20260113T090000\r\nDTEND:20260113T170000\r\n\
+             SUMMARY:A2 Synthetic activity 2\r\n"
+        ),
+        "{ics}"
+    );
+    assert!(ics.contains("CATEGORIES:CRITICAL\r\n"), "{ics}");
+    // Every line is ended with CRLF, and the same file gives the same calendar.
+    assert!(!ics.replace("\r\n", "").contains('\n'), "{ics}");
+    let again = directory.path().join("again.ics");
+    run(&[
+        "export",
+        scheduled,
+        "--to",
+        "ics",
+        "-o",
+        again.to_str().unwrap(),
+    ]);
+    assert_eq!(std::fs::read_to_string(again).unwrap(), ics);
+}
+
+#[test]
+fn an_export_to_ics_leaves_out_activities_without_dates() {
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("plan.ics");
+    let (code, stdout, _) = run(&[
+        "export",
+        LINKED,
+        "--to",
+        "ics",
+        "-o",
+        path.to_str().unwrap(),
+        "--json",
+    ]);
+    assert_eq!(code, Some(0));
+    let doc: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+    assert_eq!(doc["notes"][0]["kind"], "no-dates");
+    assert_eq!(doc["notes"][0]["count"], 2);
+    let ics = std::fs::read_to_string(path).unwrap();
+    assert!(!ics.contains("BEGIN:VEVENT"), "{ics}");
+}
+
+#[test]
 fn an_export_refuses_a_project_with_no_calendars() {
     let directory = tempfile::tempdir().unwrap();
     let (held, xml) = (

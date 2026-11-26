@@ -1476,8 +1476,8 @@ impl Server {
 
     #[tool(
         description = "Write this handle's file, with any edits and calculated results, to a new XER, \
-        or with format msproject to MS Project XML, or tfs to schedule text (docs/guide/text.md), \
-        reporting what didn't translate in notes. The \
+        or with format msproject to MS Project XML, tfs to schedule text (docs/guide/text.md), \
+        or ics to the activities as an iCalendar file, reporting what didn't translate in notes. The \
         original file is never changed, and an existing path is refused. Only use a path the user \
         chose. Example: {\"handle\": \"s1\", \"path\": \"/data/plant-scheduled.xer\"}."
     )]

@@ -22,6 +22,7 @@ mod export;
 mod fmt;
 mod global;
 mod history;
+mod ics;
 mod import;
 mod inspect;
 mod loaded;
@@ -192,12 +193,13 @@ enum Command {
         #[arg(long)]
         json: bool,
     },
-    /// Write a project as MS Project XML or schedule text (`.tfs`), and say
-    /// what didn't translate.
+    /// Write a project as MS Project XML, schedule text (`.tfs`) or an
+    /// iCalendar file (`.ics`), and say what didn't translate.
     Export {
         /// The XER file.
         file: PathBuf,
-        /// The format to write: `msproject`, or `tfs` for schedule text.
+        /// The format to write: `msproject`, `tfs` for schedule text, or `ics`
+        /// for the activities as an iCalendar file.
         #[arg(long, value_enum)]
         to: import::Format,
         /// New output file; existing paths are refused.
