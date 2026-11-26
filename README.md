@@ -1,5 +1,7 @@
 # TotalFloat
 
+> This repository is a copy of [ijd5004/totalfloat](https://github.com/ijd5004/totalfloat) (Apache-2.0), imported with its full history at commit `1523c82`. Links to releases, install scripts and the docs site still point to the upstream project.
+
 [![CI](https://github.com/ijd5004/totalfloat/actions/workflows/ci.yml/badge.svg)](https://github.com/ijd5004/totalfloat/actions/workflows/ci.yml)
 
 **Open-source, agent-native CPM scheduling.** TotalFloat is an open-source CPM scheduler that reads and writes Primavera P6 XER files and Microsoft Project XML files, calculates schedules with its own deterministic engine and documented rules, and exposes everything through a CLI and an MCP server so humans and AI agents can work on real project schedules together.
