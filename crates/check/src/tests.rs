@@ -119,7 +119,7 @@ fn activity(s: &mut Schedule, n: u64) -> &mut Activity {
 fn a_clean_chain_passes_everything_it_can_measure() {
     let assessment = assess(&chain(60), &[], &Thresholds::default());
     assert_eq!(assessment.failed(), 0, "{:#?}", assessment.checks);
-    assert_eq!(assessment.checks.len(), 20);
+    assert_eq!(assessment.checks.len(), 21);
 }
 
 #[test]
@@ -515,4 +515,73 @@ fn a_count_exactly_at_its_limit_passes() {
     over.push("A7".to_owned());
     let check = super::share(("id", "name"), over, 100, 7.0);
     assert_eq!(check.outcome, Outcome::Fail);
+}
+
+#[test]
+fn redundant_logic_finds_a_link_a_longer_chain_implies() {
+    let mut s = chain(5);
+    link(&mut s, 100, 1, 4, RelationshipType::FinishToStart, 0);
+    let result = check(&s, "redundant-logic");
+    assert_eq!(result.outcome, Outcome::Fail);
+    assert_eq!(result.listed, ["A1 to A4"]);
+    assert_eq!(result.population, 5);
+}
+
+#[test]
+fn redundant_logic_passes_a_chain_with_no_shortcut() {
+    let result = check(&chain(30), "redundant-logic");
+    assert_eq!(result.outcome, Outcome::Pass);
+    assert_eq!(result.offenders, 0);
+}
+
+#[test]
+fn redundant_logic_needs_the_chain_to_hold_the_successor_as_late() {
+    // A lag on the shortcut isn't implied by a chain without it.
+    let mut s = chain(5);
+    link(&mut s, 100, 1, 4, RelationshipType::FinishToStart, 60);
+    assert_eq!(check(&s, "redundant-logic").offenders, 0);
+    // Nor is a shortcut past a lead, or past a start-to-start link.
+    let mut s = chain(5);
+    s.relationships.get_mut(&RelationshipId(3)).unwrap().lag = Minutes(-60);
+    link(&mut s, 100, 1, 4, RelationshipType::FinishToStart, 0);
+    assert_eq!(check(&s, "redundant-logic").offenders, 0);
+    let mut s = chain(5);
+    s.relationships.get_mut(&RelationshipId(3)).unwrap().kind = RelationshipType::StartToStart;
+    link(&mut s, 100, 1, 4, RelationshipType::FinishToStart, 0);
+    assert_eq!(check(&s, "redundant-logic").offenders, 0);
+}
+
+#[test]
+fn redundant_logic_finds_every_shortcut_around_branches() {
+    // 1 -> 2 -> 3 -> 4 and 1 -> 5 -> 4, with shortcuts 1 -> 3 and 2 -> 4.
+    let mut s = chain(5);
+    s.relationships.remove(&RelationshipId(5));
+    link(&mut s, 100, 1, 5, RelationshipType::FinishToStart, 0);
+    link(&mut s, 101, 5, 4, RelationshipType::FinishToStart, 0);
+    link(&mut s, 102, 1, 3, RelationshipType::FinishToStart, 0);
+    link(&mut s, 103, 2, 4, RelationshipType::FinishToStart, 0);
+    let thresholds = Thresholds {
+        redundant_logic_percent: 50.0,
+        ..Thresholds::default()
+    };
+    let result = assess(&s, &[], &thresholds)
+        .checks
+        .into_iter()
+        .find(|check| check.id == "redundant-logic")
+        .unwrap();
+    assert_eq!(result.listed, ["A1 to A3", "A2 to A4"]);
+    assert_eq!(result.outcome, Outcome::Pass, "2 of 7 is under 50%");
+}
+
+#[test]
+fn redundant_logic_still_answers_when_the_links_loop() {
+    let mut s = chain(5);
+    link(&mut s, 100, 5, 2, RelationshipType::FinishToStart, 0);
+    link(&mut s, 101, 1, 3, RelationshipType::FinishToStart, 0);
+    // 1 -> 3 is implied by 1 -> 2 -> 3, and around the loop 1 -> 3 -> 4 ->
+    // 5 -> 2 implies 1 -> 2 too.
+    assert_eq!(
+        check(&s, "redundant-logic").listed,
+        ["A1 to A2", "A1 to A3"]
+    );
 }

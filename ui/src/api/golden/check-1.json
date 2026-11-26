@@ -191,6 +191,15 @@
           "offenders": 0,
           "outcome": "pass",
           "population": 2
+        },
+        {
+          "id": "redundant-logic",
+          "listed": [],
+          "measure": "0.0%, limit 0%",
+          "name": "Redundant logic",
+          "offenders": 0,
+          "outcome": "pass",
+          "population": 1
         }
       ],
       "code": "rel-fs-positive",

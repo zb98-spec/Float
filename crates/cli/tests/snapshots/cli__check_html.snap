@@ -37,6 +37,7 @@ expression: first
 <tr><td>Long lags</td><td class="pass">pass</td><td>0.0%, limit 0%</td><td>0 of 1</td></tr>
 <tr><td>Start-to-finish relationships</td><td class="pass">pass</td><td>0.0%, limit 0%</td><td>0 of 1</td></tr>
 <tr><td>Float lost to a calendar gap</td><td class="pass">pass</td><td>0.0%, limit 5%</td><td>0 of 3</td></tr>
+<tr><td>Redundant logic</td><td class="pass">pass</td><td>0.0%, limit 0%</td><td>0 of 1</td></tr>
 </tbody>
 </table>
 <h3>Logic: 3 of 3</h3>

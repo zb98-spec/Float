@@ -18,6 +18,10 @@ use totalfloat_model::{
 /// Activities or relationships listed per check. `offenders` counts them all.
 pub const MAX_LISTED: usize = 50;
 
+/// Activities the redundant logic check may visit in all, so a huge network
+/// costs a bounded time. Past it the check says `n/a`.
+const REDUNDANT_LOGIC_BUDGET: usize = 20_000_000;
+
 /// Days added in the critical path test.
 const TEST_DELAY_DAYS: i64 = 600;
 
@@ -55,6 +59,8 @@ pub struct Thresholds {
     pub long_lag_days: f64,
     /// Hours in a working day, where a calendar doesn't say.
     pub hours_per_day: f64,
+    /// Relationships another path already implies.
+    pub redundant_logic_percent: f64,
 }
 
 impl Default for Thresholds {
@@ -75,6 +81,7 @@ impl Default for Thresholds {
             critical_path_length_index: 0.95,
             long_lag_days: 44.0,
             hours_per_day: 8.0,
+            redundant_logic_percent: 0.0,
         }
     }
 }
@@ -702,6 +709,90 @@ impl Facts<'_> {
         share_of(head, listed, self.unfinished.len(), limit)
     }
 
+    /// Finish-to-start links with no lag that a longer chain of
+    /// finish-to-start links, none with a lead, already implies: the chain
+    /// holds the successor at least as late, so the link can never be the
+    /// only one driving it. Level of effort and WBS summaries take their dates
+    /// from what they span, so chains don't run through them.
+    fn redundant_logic(&self) -> Check {
+        let head = ("redundant-logic", "Redundant logic");
+        let activities = &self.schedule.activities;
+        let chains = |link: &&totalfloat_model::Relationship| {
+            link.kind == RelationshipType::FinishToStart
+                && link.lag.get() >= 0
+                && link.predecessor != link.successor
+                && [link.predecessor, link.successor]
+                    .iter()
+                    .all(|id| activities.get(id).is_some_and(|a| !is_span(a)))
+        };
+        let ids: Vec<ActivityId> = activities.keys().copied().collect();
+        let index = |id: ActivityId| ids.binary_search(&id).ok();
+        let mut next: Vec<Vec<usize>> = vec![Vec::new(); ids.len()];
+        for link in self.schedule.relationships.values().filter(chains) {
+            if let (Some(from), Some(to)) = (index(link.predecessor), index(link.successor)) {
+                next[from].push(to);
+            }
+        }
+        for list in &mut next {
+            list.sort_unstable();
+            list.dedup();
+        }
+        let order = topological_positions(&next);
+        let mut redundant: Vec<(usize, usize)> = Vec::new();
+        let mut seen = vec![usize::MAX; ids.len()];
+        let mut stack = Vec::new();
+        let mut budget = REDUNDANT_LOGIC_BUDGET;
+        for (from, direct) in next.iter().enumerate() {
+            if direct.len() < 2 {
+                continue;
+            }
+            // Only activities before the furthest direct successor can lead
+            // to one of them. In a loop there is no order, so all are searched.
+            let bound = order.as_ref().map_or(usize::MAX, |order| {
+                direct.iter().map(|&to| order[to]).max().unwrap_or(0)
+            });
+            let before = |at: usize| order.as_ref().is_none_or(|order| order[at] < bound);
+            // A search from each direct successor's successors: what it
+            // reaches, it reaches by two links or more.
+            stack.clear();
+            for &to in direct {
+                stack.extend(next[to].iter().copied());
+            }
+            let mut reached = Vec::new();
+            while let Some(at) = stack.pop() {
+                if seen[at] == from {
+                    continue;
+                }
+                seen[at] = from;
+                if budget == 0 {
+                    return not_applicable(head, "the network is too large to search");
+                }
+                budget -= 1;
+                if direct.binary_search(&at).is_ok() {
+                    reached.push(at);
+                }
+                if before(at) {
+                    stack.extend(next[at].iter().copied());
+                }
+            }
+            redundant.extend(reached.into_iter().map(|to| (from, to)));
+        }
+        redundant.sort_unstable();
+        let implied = |link: &totalfloat_model::Relationship| {
+            link.kind == RelationshipType::FinishToStart
+                && link.lag.get() == 0
+                && index(link.predecessor)
+                    .zip(index(link.successor))
+                    .is_some_and(|pair| redundant.binary_search(&pair).is_ok())
+        };
+        share_of(
+            head,
+            self.relationships_where(implied),
+            self.schedule.relationships.len(),
+            self.thresholds.redundant_logic_percent,
+        )
+    }
+
     fn start_to_finish(&self) -> Check {
         share_of(
             ("start-to-finish", "Start-to-finish relationships"),
@@ -710,6 +801,31 @@ impl Facts<'_> {
             0.0,
         )
     }
+}
+
+/// Each activity's place in an order where every link goes forward, or none
+/// when the links form a loop.
+fn topological_positions(next: &[Vec<usize>]) -> Option<Vec<usize>> {
+    let mut incoming = vec![0usize; next.len()];
+    for list in next {
+        for &to in list {
+            incoming[to] += 1;
+        }
+    }
+    let mut ready: Vec<usize> = (0..next.len()).filter(|&at| incoming[at] == 0).collect();
+    let mut position = vec![0usize; next.len()];
+    let mut placed = 0;
+    while let Some(at) = ready.pop() {
+        position[at] = placed;
+        placed += 1;
+        for &to in &next[at] {
+            incoming[to] -= 1;
+            if incoming[to] == 0 {
+                ready.push(to);
+            }
+        }
+    }
+    (placed == next.len()).then_some(position)
 }
 
 fn finish_test(
@@ -806,6 +922,7 @@ fn assessed(
         facts.long_lags(),
         facts.start_to_finish(),
         facts.calendar_gap_float(),
+        facts.redundant_logic(),
     ];
     Assessment {
         project: schedule.project.id.0,

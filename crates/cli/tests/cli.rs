@@ -3853,7 +3853,7 @@ fn check_writes_a_page() {
     let (_, stdout, _) = run(&["check", USAGE, "--json"]);
     let doc: serde_json::Value = serde_json::from_str(&stdout).unwrap();
     let checks = doc["projects"][0]["checks"].as_array().unwrap();
-    assert_eq!(checks.len(), 20);
+    assert_eq!(checks.len(), 21);
     for check in checks {
         let name = check["name"].as_str().unwrap();
         let row = match check["outcome"].as_str().unwrap() {
@@ -3881,7 +3881,7 @@ fn check_json_lists_every_check() {
     let (_, stdout, _) = run(&["check", LINKED, "--json"]);
     let doc: serde_json::Value = serde_json::from_str(&stdout).unwrap();
     assert_eq!(doc["schema"], "totalfloat.check/1");
-    assert_eq!(doc["projects"][0]["checks"].as_array().unwrap().len(), 20);
+    assert_eq!(doc["projects"][0]["checks"].as_array().unwrap().len(), 21);
 }
 
 #[test]

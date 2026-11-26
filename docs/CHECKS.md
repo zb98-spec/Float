@@ -1,6 +1,6 @@
 # Schedule checks
 
-`totalfloat check <file>` runs the 14 checks of the DCMA assessment and six more. It reports a result, a measure and the offending activities or relationships for each one, up to 50 listed. It exits `3` if any check fails.
+`totalfloat check <file>` runs the 14 checks of the DCMA assessment and seven more. It reports a result, a measure and the offending activities or relationships for each one, up to 50 listed. It exits `3` if any check fails.
 
 ```sh
 totalfloat check plant.xer                  # readable summary
@@ -45,6 +45,7 @@ An XER export doesn't hold a baseline, so checks 11 and 14 are `n/a`. Check 13 n
 | Long lags | Lag or lead over 44 days | None allowed | `long_lag_days` |
 | Start-to-finish relationships | Any | None allowed | none |
 | Float lost to a calendar gap | Unfinished activities whose float differs from the true value, listing both numbers ([TF-032](rules/TF-032-float-across-calendar-gaps.md)) | 5% | `calendar_gap_percent` |
+| Redundant logic | Finish-to-start links without lag that a longer chain of finish-to-start links without leads already implies, so they can never drive alone. Chains don't run through level of effort or WBS summaries, and a very large network that would take too long to search gives `n/a` | None allowed | `redundant_logic_percent` |
 
 ## Thresholds
 
