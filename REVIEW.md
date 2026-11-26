@@ -53,3 +53,21 @@ Five features chosen to fit the existing design (deterministic, file-first, no n
 | 3 | **Graphviz network export.** `export --to dot` writes the activity network as a Graphviz file, with the critical path highlighted. | `feature/export-dot` | Lets people render or diff the logic with standard tools, outside the app. |
 | 4 | **Calendar export.** `export --to ics` writes activities and milestones as an iCalendar file. | `feature/export-ics` | Puts milestones and look-ahead work into Outlook, Google Calendar or a phone. |
 | 5 | **Float bands.** A `float` command that counts unfinished activities in total-float bands (critical, near-critical, ...). | `feature/float-bands` | A quick read of schedule pressure that planners build by hand in spreadsheets today. |
+
+## Status of the features
+
+All five are built, tested and pushed, each on its own branch, and none is merged. Each branch passes `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings` and `cargo test --workspace` (1,540 tests before; each branch adds its own).
+
+| Branch | Tests added | Notes for review |
+|---|---:|---|
+| `feature/merge-hotspot-check` | 3 | New thresholds `merge_predecessors` (10) and `merge_hotspot_percent` (5%). Check count goes from 20 to 21. |
+| `feature/redundant-logic-check` | 5 | New threshold `redundant_logic_percent` (0%, like the other further checks). The search has a fixed budget and says `n/a` past it. |
+| `feature/export-dot` | 4 | Output checked with Graphviz 2.x (`dot -Tsvg`). |
+| `feature/export-ics` | 5 | Output checked with the Python `icalendar` parser. |
+| `feature/float-bands` | 6 | New command `float`, MCP tool `float`, guide page, JSON schema `totalfloat.float/1`. |
+
+**Merge conflicts to expect.** Both check branches add a check to the same list, threshold struct and docs table, and both export branches add a variant to the same `Format` enum and docs. Each pair conflicts in a few lines and is resolved by keeping both sides. The check count in the tests becomes 22 once both check branches are in.
+
+## Other findings
+
+- **Test race in update mode.** With `TOTALFLOAT_UPDATE_CONTRACT=1`, `crates/edit/tests/commands.rs` rewrites `crates/edit/tests/golden/command-1.json` in one test while the property test `every_edit_survives_writing_and_reading` reads it in another, so the property test can fail and leave a `commands.proptest-regressions` file. It doesn't happen in normal runs (16,000 cases passed). Fix: only write the golden file when its content changes, or read it once behind a lock.
