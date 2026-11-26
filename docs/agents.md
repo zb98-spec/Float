@@ -57,6 +57,7 @@ On Windows, tools take Windows paths. In JSON each backslash is doubled, as in `
 | `query` | Finds activities by filter, or follows `preds`, `succs` and `driving_path_to` |
 | `explain` | Walks a date, or total float, back to its origin |
 | `check` | Runs the DCMA 14-point assessment and six more checks, listing up to 50 offenders each. `format` `markdown` or `html` returns the report as a document instead of JSON |
+| `float` | Counts unfinished activities in total-float bands, in working days, listing up to 50 each, lowest float first |
 | `diff` | Compares two handles, usually consecutive updates. `counts` is complete, and each list keeps 100 items |
 | `variance` | Measures a handle against a baseline handle: the finish and milestone variance, the largest slips and float losses, and critical path changes. `format` `markdown` or `html` returns the report as a document instead of JSON |
 | `export` | Writes the handle's file to a new path. An existing file is never replaced |

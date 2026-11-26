@@ -19,6 +19,7 @@ mod edit;
 mod error;
 mod explain;
 mod export;
+mod float;
 mod fmt;
 mod global;
 mod history;
@@ -398,6 +399,22 @@ enum Command {
         #[arg(long)]
         json: bool,
     },
+    /// Count unfinished activities in total-float bands, in working days:
+    /// below zero, zero, and up to each bound in `--bands`.
+    Float {
+        /// The XER file.
+        file: PathBuf,
+        /// Only this project (`proj_id`). Default is every project in the file.
+        #[arg(long)]
+        project: Option<u64>,
+        /// Upper bounds of the bands above zero, in working days, ascending
+        /// (default `10,20,44`).
+        #[arg(long)]
+        bands: Option<String>,
+        /// Print JSON (schema `totalfloat.float/1`).
+        #[arg(long)]
+        json: bool,
+    },
     /// Show what a calendar works: its week, hours and exceptions, and with
     /// `--from` and `--to`, each day in the range.
     Calendar {
@@ -735,6 +752,12 @@ fn main() -> ExitCode {
         Some(Command::Textconv { file }) => (textconv::run(&file), false),
         Some(Command::Fmt { files, check, json }) => (fmt::run(&files, check, json), json),
         Some(Command::History { action }) => (history::run(&action), action.json()),
+        Some(Command::Float {
+            file,
+            project,
+            bands,
+            json,
+        }) => (float::run(&file, project, bands.as_deref(), json), json),
         Some(Command::Calendar {
             file,
             calendar,

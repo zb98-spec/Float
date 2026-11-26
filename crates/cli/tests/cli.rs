@@ -3877,6 +3877,60 @@ fn check_writes_a_page() {
 }
 
 #[test]
+fn float_counts_unfinished_activities_in_bands() {
+    let directory = tempfile::tempdir().unwrap();
+    let scheduled = directory.path().join("scheduled.xer");
+    let scheduled = scheduled.to_str().unwrap();
+    run(&["schedule", LINKED, "-o", scheduled]);
+    let (code, stdout, stderr) = run(&["float", scheduled]);
+    assert_eq!(code, Some(0), "{stderr}");
+    assert!(
+        stdout.starts_with("Project rel-fs-positive (1): 2 unfinished, 2 critical\n"),
+        "{stdout}"
+    );
+    assert!(
+        stdout.contains("  0 days                   2  100.0%\n"),
+        "{stdout}"
+    );
+    let (code, stdout, _) = run(&["float", scheduled, "--bands", "1,2", "--json"]);
+    assert_eq!(code, Some(0));
+    let doc: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+    assert_eq!(doc["schema"], "totalfloat.float/1");
+    let bands = doc["projects"][0]["bands"].as_array().unwrap();
+    let labels: Vec<&str> = bands.iter().map(|b| b["label"].as_str().unwrap()).collect();
+    assert_eq!(
+        labels,
+        [
+            "below 0 days",
+            "0 days",
+            "over 0 to 1 days",
+            "over 1 to 2 days",
+            "over 2 days"
+        ]
+    );
+    assert_eq!(bands[1]["listed"], serde_json::json!(["A1", "A2"]));
+    assert_eq!(bands[1]["share_percent"], 100.0);
+}
+
+#[test]
+fn float_refuses_bands_out_of_order_and_unknown_projects() {
+    let (code, _, stderr) = run(&["float", LINKED, "--bands", "10,5"]);
+    assert_eq!(code, Some(1));
+    assert!(stderr.contains("bad-bands"), "{stderr}");
+    let (code, _, stderr) = run(&["float", LINKED, "--project", "99"]);
+    assert_eq!(code, Some(1));
+    assert!(stderr.contains("no-such-project"), "{stderr}");
+}
+
+#[test]
+fn float_counts_what_the_file_holds_no_float_for() {
+    let (code, stdout, _) = run(&["float", LINKED, "--json"]);
+    assert_eq!(code, Some(0));
+    let doc: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+    assert_eq!(doc["projects"][0]["without_float"], 2);
+}
+
+#[test]
 fn check_json_lists_every_check() {
     let (_, stdout, _) = run(&["check", LINKED, "--json"]);
     let doc: serde_json::Value = serde_json::from_str(&stdout).unwrap();

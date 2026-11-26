@@ -50,6 +50,7 @@ What TotalFloat does today, by area. Where a feature has a gap, it says so. [Lim
 - Total float (start, finish or smallest) and free float.
 - Critical by a total-float threshold or by the longest path, with driving relationships.
 - Multiple float paths, numbered by total or free float.
+- [Float bands](float.md): unfinished work counted by total float in working days, from late through critical to plenty.
 - Tracing logic: predecessors, successors, the driving path to an activity, and [why a date is what it is](explain.md).
 
 ## Resources and costs

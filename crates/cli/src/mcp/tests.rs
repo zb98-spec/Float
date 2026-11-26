@@ -57,6 +57,7 @@ async fn every_tool_is_listed_with_a_description() {
             "edit",
             "explain",
             "export",
+            "float",
             "global_change",
             "history_baseline",
             "history_branch",
@@ -538,6 +539,24 @@ async fn check_reports_every_check() {
     assert!(!failed, "{doc}");
     assert_eq!(doc["schema"], "totalfloat.check/1");
     assert_eq!(doc["projects"][0]["checks"].as_array().unwrap().len(), 20);
+    client.cancel().await.unwrap();
+}
+
+#[tokio::test]
+async fn float_counts_activities_in_bands() {
+    let client = client().await;
+    let handle = open(&client, LINKED).await;
+    let (failed, _) = call(&client, "schedule", json!({"handle": handle})).await;
+    assert!(!failed);
+    let (failed, doc) = call(&client, "float", json!({"handle": handle, "bands": [5]})).await;
+    assert!(!failed, "{doc}");
+    assert_eq!(doc["schema"], "totalfloat.float/1");
+    let bands = doc["projects"][0]["bands"].as_array().unwrap();
+    assert_eq!(bands.len(), 4);
+    assert_eq!(bands[1]["label"], "0 days");
+    assert_eq!(bands[1]["activities"], 2);
+    let (failed, doc) = call(&client, "float", json!({"handle": handle, "bands": [5, 2]})).await;
+    assert!(failed, "{doc}");
     client.cancel().await.unwrap();
 }
 

@@ -14,6 +14,7 @@
     - [Find activities](guide/query.md)
     - [Find out why a date is what it is](guide/explain.md)
     - [Check schedule quality](guide/check.md)
+    - [See how float spreads](guide/float.md)
     - [Write a report](guide/report.md)
     - [Compare two updates](guide/diff.md)
     - [Keep projects in an EPS](guide/portfolio.md)

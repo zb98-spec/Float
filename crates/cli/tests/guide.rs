@@ -221,6 +221,7 @@ fn every_command_has_a_page() {
         "query",
         "explain",
         "check",
+        "float",
         "diff",
         "roundtrip",
         "anonymize",

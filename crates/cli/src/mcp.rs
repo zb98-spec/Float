@@ -23,8 +23,8 @@ use crate::error::{CliError, exit};
 use crate::loaded::Loaded;
 use crate::output::{create_new, permissions_of, refuse_existing, write_new};
 use crate::{
-    calendar, check, diff, edit, explain, import, inspect, new, page, portfolio, query, report,
-    risk, schedule, variance,
+    calendar, check, diff, edit, explain, float, import, inspect, new, page, portfolio, query,
+    report, risk, schedule, variance,
 };
 
 /// Rows a single query can return, whatever the client asks for.
@@ -101,6 +101,18 @@ struct CalendarParams {
     from: Option<String>,
     /// Last date, as `YYYY-MM-DD`.
     to: Option<String>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+struct FloatParams {
+    /// The handle from `open`.
+    handle: String,
+    /// Only this project (`proj_id`). Default is every project in the file.
+    project: Option<u64>,
+    /// Upper bounds of the bands above zero, in working days, ascending.
+    /// Default `[10, 20, 44]`.
+    bands: Option<Vec<f64>>,
 }
 
 #[derive(Deserialize, JsonSchema)]
@@ -1077,6 +1089,35 @@ impl Server {
             };
             let file = session.path.display().to_string();
             calendar::report(&file, &session.loaded, &calendar, &range)
+        });
+        answer(report.await)
+    }
+
+    #[tool(
+        description = "How unfinished work spreads across total-float bands, in working days: \
+        below zero, zero, then up to each bound in bands. Counts each band, its share, and the \
+        first 50 activity codes in it, lowest float first. Reads the stored float, so run \
+        `schedule` first for fresh results. Example: {\"handle\": \"s1\", \"bands\": [5, 10, 20]}."
+    )]
+    async fn float(&self, Parameters(params): Parameters<FloatParams>) -> CallToolResult {
+        let FloatParams {
+            handle,
+            project,
+            bands,
+        } = params;
+        let report = self.on_session(&handle, move |session| {
+            let bounds = match bands {
+                Some(days) => float::bounds(
+                    &days
+                        .iter()
+                        .map(ToString::to_string)
+                        .collect::<Vec<_>>()
+                        .join(","),
+                )?,
+                None => float::DEFAULT_BOUNDS.to_vec(),
+            };
+            let file = session.path.display().to_string();
+            float::report(&file, &session.loaded, project, &bounds)
         });
         answer(report.await)
     }
