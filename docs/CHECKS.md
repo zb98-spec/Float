@@ -1,6 +1,6 @@
 # Schedule checks
 
-`totalfloat check <file>` runs the 14 checks of the DCMA assessment and six more. It reports a result, a measure and the offending activities or relationships for each one, up to 50 listed. It exits `3` if any check fails.
+`totalfloat check <file>` runs the 14 checks of the DCMA assessment and seven more. It reports a result, a measure and the offending activities or relationships for each one, up to 50 listed. It exits `3` if any check fails.
 
 ```sh
 totalfloat check plant.xer                  # readable summary
@@ -45,6 +45,7 @@ An XER export doesn't hold a baseline, so checks 11 and 14 are `n/a`. Check 13 n
 | Long lags | Lag or lead over 44 days | None allowed | `long_lag_days` |
 | Start-to-finish relationships | Any | None allowed | none |
 | Float lost to a calendar gap | Unfinished activities whose float differs from the true value, listing both numbers ([TF-032](rules/TF-032-float-across-calendar-gaps.md)) | 5% | `calendar_gap_percent` |
+| Merge hotspots | Unfinished activities with more than 10 predecessors, each counted once | 5% | `merge_predecessors`, `merge_hotspot_percent` |
 
 ## Thresholds
 
@@ -58,4 +59,4 @@ hours_per_day = 10.0
 
 ## Sources
 
-The 14 checks and their limits come from DCMA's own public description of the assessment, the *EVMS Program Analysis Pamphlet* (DCMA-EA PAM 200.1, §4), a U.S. government work ([rules/sources.md](rules/sources.md#dcma-14pt)), and the [GAO schedule guide's DCMA page](https://gaoinnovations.gov/schedule-guide/dod-defense-contract-management-agency.html). The further checks and their limits are TotalFloat's own additions. Which constraints count as hard varies between sources. All of these are defaults to adjust, and the assessment is a review aid, not a pass or fail on a schedule's quality.
+The 14 checks and their limits come from DCMA's own public description of the assessment, the *EVMS Program Analysis Pamphlet* (DCMA-EA PAM 200.1, §4), a U.S. government work ([rules/sources.md](rules/sources.md#dcma-14pt)), and the [GAO schedule guide's DCMA page](https://gaoinnovations.gov/schedule-guide/dod-defense-contract-management-agency.html). The further checks and their limits are TotalFloat's own additions. Merge hotspots measure merge bias, which the [GAO Schedule Assessment Guide](https://www.gao.gov/products/gao-16-89g) (GAO-16-89G) describes: where many paths meet, the chance that any one of them is late adds up, so the merge point's forecast is optimistic. Which constraints count as hard varies between sources. All of these are defaults to adjust, and the assessment is a review aid, not a pass or fail on a schedule's quality.

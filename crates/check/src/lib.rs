@@ -55,6 +55,10 @@ pub struct Thresholds {
     pub long_lag_days: f64,
     /// Hours in a working day, where a calendar doesn't say.
     pub hours_per_day: f64,
+    /// Predecessors above which an unfinished activity is a merge hotspot.
+    pub merge_predecessors: usize,
+    /// Unfinished activities that are merge hotspots.
+    pub merge_hotspot_percent: f64,
 }
 
 impl Default for Thresholds {
@@ -75,6 +79,8 @@ impl Default for Thresholds {
             critical_path_length_index: 0.95,
             long_lag_days: 44.0,
             hours_per_day: 8.0,
+            merge_predecessors: 10,
+            merge_hotspot_percent: 5.0,
         }
     }
 }
@@ -702,6 +708,36 @@ impl Facts<'_> {
         share_of(head, listed, self.unfinished.len(), limit)
     }
 
+    /// Activities where many paths merge. Each path's chance of running late
+    /// adds to the merge point's, so its forecast is optimistic: merge bias.
+    fn merge_hotspots(&self) -> Check {
+        let mut predecessors: std::collections::BTreeMap<ActivityId, Vec<ActivityId>> =
+            std::collections::BTreeMap::new();
+        for link in self.schedule.relationships.values() {
+            predecessors
+                .entry(link.successor)
+                .or_default()
+                .push(link.predecessor);
+        }
+        for list in predecessors.values_mut() {
+            list.sort_unstable();
+            list.dedup();
+        }
+        let limit = self.thresholds.merge_predecessors;
+        let hotspots = self.unfinished.iter().filter_map(|a| {
+            let count = predecessors.get(&a.id).map_or(0, Vec::len);
+            (count > limit).then_some((a, count))
+        });
+        share_of(
+            ("merge-hotspots", "Merge hotspots"),
+            Offenders::of(hotspots, |(a, count)| {
+                format!("{}: {count} predecessors", a.code)
+            }),
+            self.unfinished.len(),
+            self.thresholds.merge_hotspot_percent,
+        )
+    }
+
     fn start_to_finish(&self) -> Check {
         share_of(
             ("start-to-finish", "Start-to-finish relationships"),
@@ -806,6 +842,7 @@ fn assessed(
         facts.long_lags(),
         facts.start_to_finish(),
         facts.calendar_gap_float(),
+        facts.merge_hotspots(),
     ];
     Assessment {
         project: schedule.project.id.0,

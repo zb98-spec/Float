@@ -191,6 +191,15 @@
           "offenders": 0,
           "outcome": "pass",
           "population": 2
+        },
+        {
+          "id": "merge-hotspots",
+          "listed": [],
+          "measure": "0.0%, limit 5%",
+          "name": "Merge hotspots",
+          "offenders": 0,
+          "outcome": "pass",
+          "population": 2
         }
       ],
       "code": "rel-fs-positive",

@@ -537,7 +537,7 @@ async fn check_reports_every_check() {
     let (failed, doc) = call(&client, "check", json!({"handle": handle})).await;
     assert!(!failed, "{doc}");
     assert_eq!(doc["schema"], "totalfloat.check/1");
-    assert_eq!(doc["projects"][0]["checks"].as_array().unwrap().len(), 20);
+    assert_eq!(doc["projects"][0]["checks"].as_array().unwrap().len(), 21);
     client.cancel().await.unwrap();
 }
 

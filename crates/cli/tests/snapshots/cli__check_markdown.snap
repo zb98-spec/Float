@@ -28,6 +28,7 @@ expression: stdout
 | Long lags | pass | 0.0%, limit 0% | 0 of 1 |
 | Start-to-finish relationships | pass | 0.0%, limit 0% | 0 of 1 |
 | Float lost to a calendar gap | pass | 0.0%, limit 5% | 0 of 2 |
+| Merge hotspots | pass | 0.0%, limit 5% | 0 of 2 |
 
 ### Logic
 

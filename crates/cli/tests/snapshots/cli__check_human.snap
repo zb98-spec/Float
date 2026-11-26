@@ -26,4 +26,5 @@ Project rel-fs-positive (1)
   pass Long lags: 0.0%, limit 0% (0 of 1)
   pass Start-to-finish relationships: 0.0%, limit 0% (0 of 1)
   pass Float lost to a calendar gap: 0.0%, limit 5% (0 of 2)
+  pass Merge hotspots: 0.0%, limit 5% (0 of 2)
 3 checks failed

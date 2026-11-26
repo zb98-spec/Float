@@ -78,7 +78,7 @@ What TotalFloat does today, by area. Where a feature has a gap, it says so. [Lim
 
 - The [local app](serve.md): activity table with editing, filters, grouping and sorting; Gantt chart with logic lines and the driving path; activity network; saved layouts; print to PDF.
 - Building a schedule in the app: activities, WBS nodes and links. Deleting a WBS node, and editing an activity's codes, notes and resources in the inspector, aren't there yet.
-- [`query`](query.md) from the command line, the [DCMA 14-point check](check.md) with six more checks, and [reports](report.md) from templates as Markdown, CSV or HTML.
+- [`query`](query.md) from the command line, the [DCMA 14-point check](check.md) with seven more checks, and [reports](report.md) from templates as Markdown, CSV or HTML.
 
 ## History and teams
 

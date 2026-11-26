@@ -119,7 +119,7 @@ fn activity(s: &mut Schedule, n: u64) -> &mut Activity {
 fn a_clean_chain_passes_everything_it_can_measure() {
     let assessment = assess(&chain(60), &[], &Thresholds::default());
     assert_eq!(assessment.failed(), 0, "{:#?}", assessment.checks);
-    assert_eq!(assessment.checks.len(), 20);
+    assert_eq!(assessment.checks.len(), 21);
 }
 
 #[test]
@@ -515,4 +515,60 @@ fn a_count_exactly_at_its_limit_passes() {
     over.push("A7".to_owned());
     let check = super::share(("id", "name"), over, 100, 7.0);
     assert_eq!(check.outcome, Outcome::Fail);
+}
+
+/// Activity 1 of `chain(count)` gets links from `extra` new open activities.
+fn merge_into_first(s: &mut Schedule, extra: u64) {
+    let first = s.activities[&ActivityId(1)].clone();
+    for n in 0..extra {
+        let id = 1000 + n;
+        let mut a = first.clone();
+        a.id = ActivityId(id);
+        a.code = format!("F{n}");
+        s.activities.insert(a.id, a);
+        link(s, 1000 + n, id, 1, RelationshipType::FinishToStart, 0);
+    }
+}
+
+#[test]
+fn merge_hotspots_count_activities_with_more_predecessors_than_the_limit() {
+    let mut s = chain(100);
+    merge_into_first(&mut s, 10);
+    let result = check(&s, "merge-hotspots");
+    assert_eq!(result.offenders, 0, "ten predecessors is at the limit");
+    let mut s = chain(100);
+    merge_into_first(&mut s, 11);
+    let result = check(&s, "merge-hotspots");
+    assert_eq!(result.offenders, 1);
+    assert_eq!(result.listed, ["A1: 11 predecessors"]);
+    assert_eq!(result.population, 111);
+    assert_eq!(result.outcome, Outcome::Pass, "one in 111 is under 5%");
+}
+
+#[test]
+fn merge_hotspots_follow_the_thresholds_and_count_a_predecessor_once() {
+    let mut s = chain(10);
+    merge_into_first(&mut s, 3);
+    // A second link from the same predecessor doesn't add a path.
+    link(&mut s, 2000, 1000, 1, RelationshipType::StartToStart, 0);
+    let thresholds = Thresholds {
+        merge_predecessors: 2,
+        merge_hotspot_percent: 0.0,
+        ..Thresholds::default()
+    };
+    let result = assess(&s, &[], &thresholds)
+        .checks
+        .into_iter()
+        .find(|check| check.id == "merge-hotspots")
+        .unwrap();
+    assert_eq!(result.outcome, Outcome::Fail);
+    assert_eq!(result.listed, ["A1: 3 predecessors"]);
+}
+
+#[test]
+fn merge_hotspots_leave_out_finished_work() {
+    let mut s = chain(10);
+    merge_into_first(&mut s, 11);
+    activity(&mut s, 1).status = ActivityStatus::Completed;
+    assert_eq!(check(&s, "merge-hotspots").offenders, 0);
 }

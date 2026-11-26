@@ -1,6 +1,6 @@
 # Check schedule quality
 
-`check` runs the DCMA 14-point assessment and six more checks. It exits `3` if any check fails.
+`check` runs the DCMA 14-point assessment and seven more checks. It exits `3` if any check fails.
 
 ```sh
 totalfloat check plant.xer
