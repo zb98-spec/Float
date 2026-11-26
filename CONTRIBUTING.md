@@ -17,6 +17,7 @@ TotalFloat's workflows are project skills, versioned with this repository:
 | Work the next issue | `/next-issue` | `$next-issue` |
 | Plan a milestone | `/plan-milestone` | `$plan-milestone` |
 | Write or amend a rule | `/write-rule` | `$write-rule` |
+| Test a build by hand on Linux or Windows | `/platform-test` | `$platform-test` |
 
 Claude discovers these bundles in `.claude/skills/`; Codex discovers matching
 bundles in `.agents/skills/` ([Codex skill locations](https://developers.openai.com/codex/skills/)).

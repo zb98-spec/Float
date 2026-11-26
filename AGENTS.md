@@ -86,6 +86,6 @@ crates/        Rust workspace members (see docs/ARCHITECTURE.md#crates)
 xtask/         Dev tooling (corpus, fixtures, release helpers)
 fixtures/      Synthetic / permissioned test schedules with MANIFEST.md
 docs/          Architecture and design decisions, rules, guides
-.claude/skills Agent workflows: next-issue, plan-milestone, write-rule
+.claude/skills Agent workflows: next-issue, plan-milestone, write-rule, platform-test
 .github/       CI, issue and PR templates
 ```
