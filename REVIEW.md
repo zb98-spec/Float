@@ -62,7 +62,7 @@ All five are built, tested and pushed, each on its own branch, and none is merge
 |---|---:|---|
 | `feature/merge-hotspot-check` | 3 | New thresholds `merge_predecessors` (10) and `merge_hotspot_percent` (5%). Check count goes from 20 to 21. |
 | `feature/redundant-logic-check` | 5 | New threshold `redundant_logic_percent` (0%, like the other further checks). The search has a fixed budget and says `n/a` past it. |
-| `feature/export-dot` | 4 | Output checked with Graphviz 2.x (`dot -Tsvg`). |
+| `feature/export-dot` | 4 | Output checked by rendering it with Graphviz (`dot -Tsvg`). |
 | `feature/export-ics` | 5 | Output checked with the Python `icalendar` parser. |
 | `feature/float-bands` | 6 | New command `float`, MCP tool `float`, guide page, JSON schema `totalfloat.float/1`. |
 
