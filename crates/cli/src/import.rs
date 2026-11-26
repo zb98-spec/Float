@@ -138,6 +138,8 @@ pub enum Format {
     Msproject,
     /// Schedule text (`.tfs`, ARCHITECTURE.md, Schedule as text).
     Tfs,
+    /// The activity network as a Graphviz file (`.dot`).
+    Dot,
 }
 
 /// `totalfloat.export/1`.
@@ -151,7 +153,8 @@ pub struct Exported {
     notes: Vec<Note>,
 }
 
-/// Writes one project of a file as MS Project XML. The source is never changed.
+/// Writes one project of a file as MS Project XML, schedule text or a
+/// Graphviz network. The source is never changed.
 pub fn export_file(
     source: &str,
     loaded: &Loaded,
@@ -203,6 +206,23 @@ pub fn export_file(
                     examples: l.examples,
                 })
                 .collect(),
+        });
+    }
+    if let Format::Dot = format {
+        let others: Vec<_> = loaded
+            .schedules
+            .iter()
+            .filter(|s| s.project.id != schedule.project.id)
+            .cloned()
+            .collect();
+        let (text, notes) = crate::dot::write(schedule, &others);
+        create_new_text(&text, output)?;
+        return Ok(Exported {
+            schema: "totalfloat.export/1",
+            source: source.to_owned(),
+            output: output.display().to_string(),
+            format: "dot",
+            notes,
         });
     }
     if schedule.calendars.is_empty() {

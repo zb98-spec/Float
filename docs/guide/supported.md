@@ -7,6 +7,7 @@ What TotalFloat does today, by area. Where a feature has a gap, it says so. [Lim
 - **XER:** reads every table and field in a file, keeping the ones it doesn't use as they are. An unedited file saves back byte for byte, and an edited one changes only what you changed. Several projects in one file, and links between them, are kept.
 - **New schedules:** `totalfloat new`, [schedule text](text.md) or a spreadsheet.
 - **Microsoft Project XML:** [import and export](import.md), with tasks, links, resources and assignments. Costs are written in US dollars.
+- **Graphviz:** `export --to dot` draws the activity network, with the critical path highlighted.
 - **Spreadsheets:** build a schedule from an `.xlsx` workbook or CSV files, update progress from a status table, export any `query` as CSV or Excel, and read edits made in an exported sheet back in.
 - **Not yet:** P6 XML (PMXML), and Microsoft Project `.mpp` files.
 

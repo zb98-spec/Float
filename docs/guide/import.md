@@ -70,6 +70,18 @@ The list of what didn't translate works the same way. The main things are:
 
 A project that lost tasks or links when its file was read is refused, and so is one with no calendars.
 
+## Draw the network
+
+`export --to dot` writes a project's activity network as a [Graphviz](https://graphviz.org) file, which Graphviz and many other tools draw as a picture:
+
+```sh
+totalfloat schedule plant.xer -o plant-scheduled.xer
+totalfloat export plant-scheduled.xer --to dot -o plant.dot
+dot -Tsvg plant.dot -o plant.svg
+```
+
+Each activity is a box showing its ID, name, early dates and total float, and each milestone is a diamond. Critical activities, and the links between them, are red; completed work is grey. A link shows its type when it isn't finish-to-start, and its lag in hours when it has one. The dates and float are the ones the file stores, so schedule it first; the notes say which activities have none. Links to other projects are left out, and the notes count them.
+
 ## Build a schedule from a spreadsheet
 
 `import` also builds a new schedule from a spreadsheet: an `.xlsx` workbook, or a folder of CSV files. A workbook has a sheet, and a folder a `.csv` file, for each part. Name each sheet or file as below; a workbook's other sheets are left alone.

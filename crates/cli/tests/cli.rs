@@ -2259,6 +2259,89 @@ fn an_export_opens_again_as_the_same_schedule() {
 }
 
 #[test]
+fn an_export_to_dot_draws_the_network_with_the_critical_path() {
+    let directory = tempfile::tempdir().unwrap();
+    let scheduled = directory.path().join("scheduled.xer");
+    let scheduled = scheduled.to_str().unwrap();
+    run(&["schedule", LINKED, "-o", scheduled]);
+    let path = directory.path().join("network.dot");
+    let path = path.to_str().unwrap();
+    let (code, stdout, stderr) = run(&["export", scheduled, "--to", "dot", "-o", path, "--json"]);
+    assert_eq!(code, Some(0), "{stdout}{stderr}");
+    let doc: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+    assert_eq!(doc["format"], "dot");
+    assert_eq!(doc["notes"], serde_json::json!([]));
+    let dot = std::fs::read_to_string(path).unwrap();
+    assert!(dot.starts_with("digraph \"rel-fs-positive\" {\n"), "{dot}");
+    assert!(
+        dot.contains("  a1 -> a2 [label=\"FS +1.0h\", color=\"#c0392b\", penwidth=2];\n"),
+        "{dot}"
+    );
+    assert!(dot.contains("TF 0.0h"), "{dot}");
+    assert!(dot.ends_with("}\n"), "{dot}");
+    // The same file gives the same network, and an existing path is refused.
+    let again = directory.path().join("again.dot");
+    run(&[
+        "export",
+        scheduled,
+        "--to",
+        "dot",
+        "-o",
+        again.to_str().unwrap(),
+    ]);
+    assert_eq!(std::fs::read_to_string(again).unwrap(), dot);
+    let (code, _, stderr) = run(&["export", scheduled, "--to", "dot", "-o", path]);
+    assert_eq!(code, Some(1));
+    assert!(stderr.contains("output-exists"), "{stderr}");
+}
+
+#[test]
+fn an_export_to_dot_says_when_the_file_holds_no_dates() {
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("network.dot");
+    let (code, stdout, _) = run(&[
+        "export",
+        LINKED,
+        "--to",
+        "dot",
+        "-o",
+        path.to_str().unwrap(),
+        "--json",
+    ]);
+    assert_eq!(code, Some(0));
+    let doc: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+    assert_eq!(doc["notes"][0]["kind"], "no-dates");
+    assert_eq!(doc["notes"][0]["count"], 2);
+}
+
+#[test]
+fn an_export_to_dot_names_links_to_other_projects_it_leaves_out() {
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("network.dot");
+    let path = path.to_str().unwrap();
+    let (code, stdout, stderr) = run(&[
+        "export",
+        TWO_PROJECTS,
+        "--to",
+        "dot",
+        "--project",
+        "1",
+        "-o",
+        path,
+        "--json",
+    ]);
+    assert_eq!(code, Some(0), "{stderr}");
+    let doc: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+    assert_eq!(doc["notes"][0]["kind"], "external-links");
+    assert_eq!(doc["notes"][0]["examples"], serde_json::json!(["A1 to B1"]));
+    // Its link within the project is drawn.
+    assert_eq!(
+        std::fs::read_to_string(path).unwrap().matches("->").count(),
+        1
+    );
+}
+
+#[test]
 fn an_export_refuses_a_project_with_no_calendars() {
     let directory = tempfile::tempdir().unwrap();
     let (held, xml) = (

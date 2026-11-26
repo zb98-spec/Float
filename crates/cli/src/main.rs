@@ -15,6 +15,7 @@ mod build;
 mod calendar;
 mod check;
 mod diff;
+mod dot;
 mod edit;
 mod error;
 mod explain;
@@ -192,12 +193,13 @@ enum Command {
         #[arg(long)]
         json: bool,
     },
-    /// Write a project as MS Project XML or schedule text (`.tfs`), and say
-    /// what didn't translate.
+    /// Write a project as MS Project XML, schedule text (`.tfs`) or a
+    /// Graphviz network (`.dot`), and say what didn't translate.
     Export {
         /// The XER file.
         file: PathBuf,
-        /// The format to write: `msproject`, or `tfs` for schedule text.
+        /// The format to write: `msproject`, `tfs` for schedule text, or `dot`
+        /// for the activity network as a Graphviz file.
         #[arg(long, value_enum)]
         to: import::Format,
         /// New output file; existing paths are refused.
